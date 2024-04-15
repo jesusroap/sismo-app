@@ -14,6 +14,10 @@ import { FormsModule } from '@angular/forms';
 import {MatInputModule} from '@angular/material/input';
 import { MatDialogModule } from '@angular/material/dialog';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
+import {MatToolbarModule} from '@angular/material/toolbar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 @NgModule({
   declarations: [
@@ -33,7 +37,11 @@ import { NgxPaginationModule } from 'ngx-pagination';
     MatInputModule,
     FormsModule,
     MatDialogModule,
-    NgxPaginationModule
+    NgxPaginationModule,
+    MatPaginatorModule,
+    MatSelectModule,
+    MatToolbarModule,
+    MatSnackBarModule
   ],
   providers: [],
   bootstrap: [AppComponent]

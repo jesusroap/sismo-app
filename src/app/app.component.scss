@@ -6,4 +6,16 @@ table {
     display: flex;
     justify-content: center;
     padding: 0;
+
+    a {
+        color: #ffffff
+    }
+
+    a:hover {
+        background: #595959;
+    }
+
+    .disabled {
+        color: #595959
+    }
 }

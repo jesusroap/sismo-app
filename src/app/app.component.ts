@@ -1,10 +1,21 @@
 import { Component, Inject } from '@angular/core';
 import { SismoDataService } from './services/sismo-data.service';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 export interface DialogData {
   body: string;
   feature_id: number;
+}
+
+interface MagType {
+  value: string;
+  viewValue: string;
+}
+
+interface PerPage {
+  value: number | string;
+  viewValue: string;
 }
 
 @Component({
@@ -14,22 +25,38 @@ export interface DialogData {
 })
 export class AppComponent {
 
-  collection: any = [];
   currentPage = 1;
   totalItems = 0;
-  itemsPerPage = 10;
+  itemsPerPage = 5;
   magType = ""
+
+  magTypes: MagType[] = [
+    {value: '', viewValue: 'Select'},
+    {value: 'md', viewValue: 'md'},
+    {value: 'ml', viewValue: 'ml'},
+    {value: 'ms', viewValue: 'ms'},
+    {value: 'mw', viewValue: 'mw'},
+    {value: 'me', viewValue: 'me'},
+    {value: 'mi', viewValue: 'mi'},
+    {value: 'mb', viewValue: 'mb'},
+    {value: 'mlg', viewValue: 'mlg'},
+  ];
+
+  itemsPerPages: PerPage[] = [
+    {value: 1, viewValue: '1'},
+    {value: 5, viewValue: '5'},
+    {value: 50, viewValue: '50'},
+    {value: 500, viewValue: '500'},
+    {value: 1000, viewValue: '1000'},
+  ];
 
   constructor(
     private sismoDataService: SismoDataService,
-    public dialog: MatDialog
-  ) {
-    for (let i = 1; i <= 100; i++) {
-      this.collection.push(`item ${i}`);
-    }
-  }
+    public dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) {}
 
-  displayedColumns: string[] = ['id', 'title', 'mag_type', 'magnitude', 'actions'];
+  displayedColumns: string[] = ['id', 'place', 'magnitude', 'coordinates', 'time', 'mag_type', 'tsunami', 'actions'];
   dataSource: any = [];
 
   ngOnInit() {
@@ -49,7 +76,15 @@ export class AppComponent {
 
   loadData(page?: number, perPage?: number, magType?: string) {
     this.sismoDataService.getData(page || this.currentPage, perPage || this.itemsPerPage, magType || this.magType).subscribe((response: any) => {
-      this.dataSource = response.data; // Aquí obtienes los datos de tu API
+      if (response.pagination.total == 0) {
+        this.snackBar.open("No seismological data found", "", {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+        })
+      }
+
+      this.dataSource = response.data;
       this.currentPage = response.pagination.current_page;
       this.totalItems = response.pagination.total;
       this.itemsPerPage = response.pagination.per_page;
@@ -59,12 +94,12 @@ export class AppComponent {
 
 @Component({
   selector: 'dialog-overview-example-dialog',
-  template: `<h2 mat-dialog-title>Comments</h2>
+  template: `<h2 mat-dialog-title>Feature {{request.feature_id}}</h2>
             <mat-dialog-content>
               <p>Write your comment</p>
               <mat-form-field>
                 <mat-label>Body</mat-label>
-                <input matInput [(ngModel)]="request.body">
+                <textarea matInput [(ngModel)]="request.body"></textarea>
               </mat-form-field>
             </mat-dialog-content>
             <mat-dialog-actions>
@@ -75,6 +110,7 @@ export class AppComponent {
 export class DialogOverviewExampleDialog {
   constructor(
     public sismoDataService: SismoDataService,
+    private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<DialogOverviewExampleDialog>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
   ) {}
@@ -85,6 +121,14 @@ export class DialogOverviewExampleDialog {
   }
 
   save() {
+    if (!this.request.body) {
+      this.snackBar.open("The body can't be blank", "", {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+      })
+      return
+    }
     this.sismoDataService.postComment(this.request).subscribe(data => {
       console.log(data)
     })
